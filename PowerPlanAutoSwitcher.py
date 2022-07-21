@@ -15,10 +15,6 @@ b = "powercfg /setactive "
 
 ######################################################
 
-#subprocess.run(["powershell", "-Command", "clear"], capture_output=False)
-
-######################################################
-
 for line in r:
     if "Ultimate" in line:
         u += line.split(" ")[3]
