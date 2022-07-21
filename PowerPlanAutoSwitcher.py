@@ -1,19 +1,29 @@
 ######################################################
-
 import os
 import time
+import pystray
 import subprocess
 
+from PIL import Image as img
+from pystray import Icon, Menu, MenuItem
+from threading import Thread
 ######################################################
+
+startupinfo = subprocess.STARTUPINFO()
+startupinfo.dwFlags |= (
+    subprocess.STARTF_USESTDHANDLES | subprocess.STARTF_USESHOWWINDOW
+)
+startupinfo.wShowWindow = subprocess.SW_HIDE
 
 previousPlan = ""
-previousPlatform =""
-pdic = {"steam.exe" : 0, "EpicGamesLauncher.exe" : 0}
-r = os.popen('powercfg /list')
+platforms = {"steam" : 0, "EpicGamesLauncher" : 0}
 u = "powercfg /setactive "
 b = "powercfg /setactive "
+gP = "Get-Process"
+cmdMSI = "& 'C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe' "
 
 ######################################################
+r = os.popen('powercfg /list')
 
 for line in r:
     if "Ultimate" in line:
@@ -23,46 +33,53 @@ for line in r:
         b += line.split(" ")[3]
         previousPlan = "BM"
 
-######################################################
-
 r.close()
-
 ######################################################
+iconName = "Power Plan Switch"
+iconImage = img.open("iconv2.png")
+icon = pystray.Icon(iconName, iconImage, previousPlan)
+
+def iconStart():
+    icon.run()
+
+thread = Thread(target = iconStart)
+thread.start()
 
 while True:
 
     index = 0
+    processList = subprocess.run(["powershell", "-Command", gP], 
+        capture_output=True, text=True, 
+        startupinfo=startupinfo)
 
-    subprocess.call([r'GetProcess\getProcess.bat'])
-    pList = open("GetProcess\processList.txt")
+    for key in platforms.keys():
+        if key in processList.stdout:
+            platforms[key] = 1
 
-    for line in pList:
-        for key in pdic.keys():
-            if key in line:
-                pdic[key] = 1
-                #if previousPlatform == "":
-                    #previousPlatform = key
-                #else:
-
-    
-    pList.close()
-
-    if sum(pdic.values()) > 0:
+    if sum(platforms.values()) > 0:
         if previousPlan == "BM":
-            subprocess.run(["powershell", "-Command", u], capture_output=False)
-            subprocess.call([r'MSI\MSIp1.bat'])
-            print()
-            print("Power plan: Ultimate mode")
+
+            subprocess.run(["powershell", "-Command", u], 
+                capture_output=False, startupinfo=startupinfo)
+
+            subprocess.run(["powershell", "-Command", cmdMSI+"-Profile1"], 
+                capture_output=False, startupinfo=startupinfo)
+
             previousPlan = "UM"
+            #icon.title(self, "UM")
     else:
         if previousPlan == "UM":
-            subprocess.run(["powershell", "-Command", b], capture_output=False)
-            subprocess.call([r'MSI\MSIp2.bat'])
-            print()
-            print("Power plan: Balanced mode")
-            previousPlan = "BM"
 
-    pdic = {"steam.exe" : 0, "EpicGamesLauncher.exe" : 0}
-    time.sleep(1)
+            subprocess.run(["powershell", "-Command", b], 
+                capture_output=False, startupinfo=startupinfo)
+
+            subprocess.run(["powershell", "-Command", cmdMSI+"-Profile2"], 
+                capture_output=False, startupinfo=startupinfo)
+
+            previousPlan = "BM"
+            #icon.title(self, "BM")
+
+    platforms = {"steam" : 0, "EpicGamesLauncher" : 0}
+    time.sleep(0.5)
 
 ######################################################
