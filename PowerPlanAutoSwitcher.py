@@ -25,6 +25,8 @@ cmdMSI = "& 'C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe' "
 ######################################################
 r = os.popen('powercfg /list')
 
+r = os.popen('powercfg /list')
+
 for line in r:
     if "Ultimate" in line:
         u += line.split(" ")[3]
@@ -35,6 +37,7 @@ for line in r:
 
 r.close()
 ######################################################
+
 iconName = "Power Plan Switch"
 iconImage = img.open("iconv2.png")
 icon = pystray.Icon(iconName, iconImage, previousPlan)
@@ -66,7 +69,6 @@ while True:
                 capture_output=False, startupinfo=startupinfo)
 
             previousPlan = "UM"
-            #icon.title(self, "UM")
     else:
         if previousPlan == "UM":
 
@@ -77,8 +79,7 @@ while True:
                 capture_output=False, startupinfo=startupinfo)
 
             previousPlan = "BM"
-            #icon.title(self, "BM")
-
+    
     platforms = {"steam" : 0, "EpicGamesLauncher" : 0}
     time.sleep(0.5)
 
