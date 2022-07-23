@@ -21,10 +21,10 @@ u = "powercfg /setactive "
 b = "powercfg /setactive "
 gP = "Get-Process"
 cmdMSI = "& 'C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe' "
+iconName = "Power Plan Switch"
+iconImage = img.open("iconv2.png")
 
 ######################################################
-r = os.popen('powercfg /list')
-
 r = os.popen('powercfg /list')
 
 for line in r:
@@ -37,13 +37,14 @@ for line in r:
 
 r.close()
 ######################################################
-
-iconName = "Power Plan Switch"
-iconImage = img.open("iconv2.png")
-icon = pystray.Icon(iconName, iconImage, previousPlan)
+icon = pystray.Icon(iconName, iconImage, iconName)
 
 def iconStart():
     icon.run()
+
+def subprocessRun(cmd):
+     subprocess.run(["powershell", "-Command", cmd], 
+                capture_output=False, startupinfo=startupinfo)
 
 thread = Thread(target = iconStart)
 thread.start()
@@ -61,23 +62,13 @@ while True:
 
     if sum(platforms.values()) > 0:
         if previousPlan == "BM":
-
-            subprocess.run(["powershell", "-Command", u], 
-                capture_output=False, startupinfo=startupinfo)
-
-            subprocess.run(["powershell", "-Command", cmdMSI+"-Profile1"], 
-                capture_output=False, startupinfo=startupinfo)
-
+            subprocessRun(u)
+            subprocessRun(cmdMSI+"-Profile1")
             previousPlan = "UM"
     else:
         if previousPlan == "UM":
-
-            subprocess.run(["powershell", "-Command", b], 
-                capture_output=False, startupinfo=startupinfo)
-
-            subprocess.run(["powershell", "-Command", cmdMSI+"-Profile2"], 
-                capture_output=False, startupinfo=startupinfo)
-
+            subprocessRun(b)
+            subprocessRun(cmdMSI+"-Profile2")
             previousPlan = "BM"
     
     platforms = {"steam" : 0, "EpicGamesLauncher" : 0}
